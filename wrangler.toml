@@ -1,0 +1,16 @@
+name = "ynab-bob"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "ynab-bob-prod"
+route = "example.com/*"
+zone_id = "your-zone-id"
+
+[build]
+command = "npm install"
+command_cwd = "./"
+
+[[build.upload_rules]]
+globs = ["*.html", "*.css", "*.js"]
+ignore_globs = ["wrangler.toml", "node_modules/**/*"]
