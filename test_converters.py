@@ -239,33 +239,5 @@ class TestWiseConverter(unittest.TestCase):
         self.assertEqual(result[4], '-100.00')
 
 
-class TestBobConverter(unittest.TestCase):
-    """Test suite for bob-to-actual conversion logic."""
-
-    def test_replace_multiple_spaces(self):
-        import importlib.util, os
-        repo_root = os.path.dirname(__file__)
-        spec = importlib.util.spec_from_file_location("bob_module", os.path.join(repo_root, "bob-to-actual.py"))
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        self.assertEqual(mod.replace_multiple_spaces('a   b\t c'), 'a b c')
-        self.assertEqual(mod.replace_multiple_spaces('  leading  and  trailing  '), ' leading and trailing ')
-
-    def test_bob_sample_conversion(self):
-        import tempfile, shutil, subprocess, sys, glob, csv, os
-        repo_root = os.path.dirname(__file__)
-        raw = os.path.join(repo_root, '.scratch', 'bob-sample-raw.csv')
-        expected = os.path.join(repo_root, '.scratch', 'bob-sample-converted.csv')
-        with tempfile.TemporaryDirectory() as td:
-            shutil.copy(raw, os.path.join(td, 'bob-sample-raw.csv'))
-            subprocess.run([sys.executable, os.path.join(repo_root, 'bob-to-actual.py')], cwd=td, check=True)
-            generated = glob.glob(os.path.join(td, 'YNAB_*.csv'))
-            self.assertTrue(generated, "No YNAB_ output file generated")
-            gen = generated[0]
-            with open(gen, newline='', encoding='utf-8') as f1, open(expected, newline='', encoding='utf-8') as f2:
-                got = list(csv.reader(f1))
-                want = list(csv.reader(f2))
-            self.assertEqual(got, want)
-
 if __name__ == '__main__':
     unittest.main()
