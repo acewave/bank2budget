@@ -1,6 +1,8 @@
 import os
 import csv
 from datetime import datetime
+import tkinter as tk
+from tkinter import filedialog
 import re
 import argparse
 
@@ -37,7 +39,7 @@ def process_csv(in_filename):
                         is_cc = True
                         filename_suffix = "YNAB_CC_" + row[1][-4:]
                     else:
-                        account_number = row[0].lstrip("'").strip()   # strip leading apostrophe and whitespace
+                        account_number = row[0].replace("'", "0")   # fix for apostrophe in input file
                         filename_suffix = "YNAB_" + account_number
 
                 if row[0] == "Reference No" or row[0] == "Transaction Date":
@@ -74,15 +76,10 @@ def process_csv(in_filename):
 
                 line_count += 1
 
-    except Exception as e:
-        print(f'Error reading file {in_filename}: {e}')
-        return False
+    except:
+        print(f'Error reading file {in_filename}')
 
     try:
-        if trans_date_min == datetime.max or trans_date_max == datetime.min:
-            print(f'No transactions found in file {in_filename}')
-            return False
-
         trans_date_min_string = trans_date_min.strftime('%Y%m%d')
         trans_date_max_string = trans_date_max.strftime('%Y%m%d')
         filename_suffix = filename_suffix + "_" + trans_date_min_string + "_" + trans_date_max_string
@@ -93,19 +90,10 @@ def process_csv(in_filename):
             for line in ynab_csv:
                 ynab_writer.writerow([line[0], line[1], line[2], line[3], line[4]])
         print(f'Input: {in_filename} Output: {out_filename}')
-        return True
-    except Exception as e:
-        print(f'Error writing file {in_filename}: {e}')
-        return False
+    except:
+        print(f'Error writing file {out_filename}')
 
 def process_csv_files_select():
-    try:
-        import tkinter as tk
-        from tkinter import filedialog
-    except Exception as e:
-        print(f'Interactive mode requires tkinter but it is not available: {e}')
-        return
-
     root = tk.Tk()
     root.withdraw()
 
@@ -121,20 +109,16 @@ def process_csv_files_select():
 
     print(f"Fixing {len(csv_files)} CSV file(s)...")
 
-    file_count = 0
     for csv_file in csv_files:
-        if process_csv(csv_file):
-            file_count += 1
-
-    print(f'{file_count} file(s) processed.')
+        process_csv(csv_file)
 
 def process_csv_files():
     file_count = 0
 
     for file in os.listdir():
         if file.endswith('.csv') and not file.startswith('YNAB_'):
-            if process_csv(file):
-                file_count += 1
+            process_csv(file)
+            file_count += 1
 
     print(f'{file_count} file(s) processed.')
 
