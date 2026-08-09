@@ -125,18 +125,17 @@ def transform_row(row_data):
     elif direction == 'NEUTRAL':
         # Rule: NEUTRAL transactions that involve the base currency
         
-        if is_source_base:
-            # Payee = Source name; Amount = -(Source amount + Source fee) (Expense/Transfer Out)
+        if is_source_base and not is_target_base:
+            # GBP spent to buy foreign currency (e.g. GBP -> EUR/USD wallet) (Expense/Transfer Out)
             payee = source_name
             total_expense = safe_decimal_sum(source_amount, source_fee)
             amount = -total_expense
             
         elif is_target_base:
-            # Payee = Target name; Amount = Target amount (Income/Transfer In)
-            payee = target_name
+            # Target is base currency (e.g. USD -> GBP exchange, or GBP -> GBP balance adjustment/cashback) (Income/Transfer In)
+            payee = source_name if source_name != target_name else target_name
             amount = safe_decimal_sum(target_amount, '0')
         
-        # Note: If both currencies match BASE_CURRENCY (e.g., GBP to GBP), it will hit the 'is_source_base' branch.
         # If neither matched, it would have been skipped by the global filter above.
 
     # Construct the output row dictionary only if we did not skip

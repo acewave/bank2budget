@@ -34,7 +34,14 @@ def convert_xlsx_to_csv():
     df['Date'] = df['Started Date'].dt.date
     df['Payee'] = df['Description']
     df['Memo'] = df['Description']
-    df['Amount'] = df['Amount']
+
+    # Calculate net amount by subtracting non-zero Fee (if present)
+    if 'Fee' in df.columns:
+        fee = pd.to_numeric(df['Fee'], errors='coerce').fillna(0)
+        amount = pd.to_numeric(df['Amount'], errors='coerce').fillna(0)
+        df['Amount'] = amount - fee
+    else:
+        df['Amount'] = df['Amount']
 
     # Select and reorder the columns
     output_df = df[['Date', 'Payee', 'Memo', 'Amount']]

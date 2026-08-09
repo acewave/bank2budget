@@ -1,0 +1,12 @@
+# Ignore local scratch directory containing real bank statement exports
+.scratch/
+
+# Python bytecode and caches
+__pycache__/
+*.pyc
+*.pyo
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
