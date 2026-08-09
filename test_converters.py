@@ -276,5 +276,39 @@ class TestBobConverter(unittest.TestCase):
                 want = list(csv.reader(f2))
             self.assertEqual(got, want)
 
+class TestOrchestrator(unittest.TestCase):
+    """Tests for the unified CLI orchestrator detection logic."""
+
+    def test_detect_bob_sample(self):
+        import importlib.util, os
+        repo_root = os.path.dirname(__file__)
+        spec = importlib.util.spec_from_file_location("unify", os.path.join(repo_root, 'bin', 'unify-convert.py'))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        sample = os.path.join(repo_root, '.scratch', 'bob-sample-raw.csv')
+        self.assertTrue(os.path.exists(sample))
+        self.assertEqual(mod.detect_source(sample), 'bob')
+
+    def test_detect_wise_sample(self):
+        import importlib.util, os
+        repo_root = os.path.dirname(__file__)
+        spec = importlib.util.spec_from_file_location("unify", os.path.join(repo_root, 'bin', 'unify-convert.py'))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        sample = os.path.join(repo_root, '.scratch', 'wise-sample-raw.csv')
+        self.assertTrue(os.path.exists(sample))
+        self.assertEqual(mod.detect_source(sample), 'wise')
+
+    def test_detect_revolut_sample(self):
+        import importlib.util, os
+        repo_root = os.path.dirname(__file__)
+        spec = importlib.util.spec_from_file_location("unify", os.path.join(repo_root, 'bin', 'unify-convert.py'))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        sample = os.path.join(repo_root, '.scratch', 'revolut-sample-raw.csv')
+        self.assertTrue(os.path.exists(sample))
+        self.assertEqual(mod.detect_source(sample), 'revolut')
+
+
 if __name__ == '__main__':
     unittest.main()

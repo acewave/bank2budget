@@ -2,8 +2,8 @@
 Unified converter CLI prototype for bank2budget
 
 Usage examples:
-  python bin\unify-convert.py file1.csv file2.csv
-  python bin\unify-convert.py --preview .scratch\bob-sample-raw.csv
+  python bin/unify-convert.py file1.csv file2.csv
+  python bin/unify-convert.py --preview .scratch/bob-sample-raw.csv
 
 Behavior:
 - Detects source by header heuristics and dispatches to the appropriate converter module
