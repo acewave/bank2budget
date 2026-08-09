@@ -160,6 +160,33 @@ def transform_row(row_data):
     # Ensure the output order is correct based on OUTPUT_HEADERS
     return [output_row[col] for col in OUTPUT_HEADERS]
 
+def convert_file(input_path, base_currency=None, preview=False):
+    """Wrapper to convert a single wise CSV file. Returns the output filepath or None/False on error.
+       - If base_currency is None, attempt detection from the file.
+       - If preview=True, do not write outputs; instead return the expected output filename (if dates parseable) or None.
+    """
+    global INPUT_FILENAME, BASE_CURRENCY
+    INPUT_FILENAME = input_path
+    if base_currency:
+        BASE_CURRENCY = base_currency.upper()
+    else:
+        detected = detect_base_currency_from_file(INPUT_FILENAME)
+        if detected:
+            BASE_CURRENCY = detected
+        else:
+            # fall back to default or interactive selection
+            BASE_CURRENCY = BASE_CURRENCY or 'GBP'
+
+    if preview:
+        min_date, max_date = compute_date_range_from_file(INPUT_FILENAME)
+        if min_date and max_date:
+            return os.path.join(os.path.dirname(INPUT_FILENAME) or '.', f"wise-actual-{min_date.strftime('%Y%m%d')}-{max_date.strftime('%Y%m%d')}.csv")
+        return None
+
+    # Run the normal conversion which writes the file
+    convert_csv()
+
+
 def select_input_file():
     """
     Opens a file picker dialog to allow the user to select the input CSV file.
@@ -239,6 +266,45 @@ def detect_base_currency_from_file(filename):
 
     except Exception:
         return None
+
+
+def compute_date_range_from_file(filename):
+    """Scan file and return (min_date, max_date) as date objects or (None, None).
+    Looks for 'Created on' values similar to convert_csv."""
+    min_date = None
+    max_date = None
+    try:
+        with open(filename, mode='r', newline='', encoding='utf-8') as infile:
+            reader = csv.reader(infile)
+            try:
+                input_header = [h.strip() for h in next(reader)]
+            except StopIteration:
+                return (None, None)
+            normalized_header_map = {h.lower(): i for i, h in enumerate(input_header)}
+            created_idx = normalized_header_map.get('created on')
+            if created_idx is None:
+                return (None, None)
+            for row in reader:
+                created_on = row[created_idx].strip() if created_idx < len(row) else ''
+                if not created_on:
+                    continue
+                # Try multiple date formats
+                transaction_date = None
+                date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d', '%d-%m-%Y']
+                for date_fmt in date_formats:
+                    try:
+                        transaction_date = datetime.strptime(created_on, date_fmt).date()
+                        break
+                    except ValueError:
+                        continue
+                if transaction_date:
+                    if min_date is None or transaction_date < min_date:
+                        min_date = transaction_date
+                    if max_date is None or transaction_date > max_date:
+                        max_date = transaction_date
+    except Exception:
+        return (None, None)
+    return (min_date, max_date)
 
 
 def convert_csv():
@@ -356,7 +422,17 @@ def convert_csv():
 
 # --- Sample Data Generation for Testing ---
 
+def detect_wise_file(path):
+    try:
+        with open(path, encoding='utf-8-sig', newline='') as f:
+            head = f.read(4096).lower()
+            return 'source currency' in head and 'target currency' in head
+    except Exception:
+        return False
+
+
 def generate_sample_input():
+
     """Generates a sample CSV file for testing, including case-insensitive headers and skip cases."""
     
     # 1. Standard data (will be written with standard headers)

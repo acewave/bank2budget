@@ -1,11 +1,17 @@
 import pandas as pd
 import os
 import csv
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 
 def convert_xlsx_to_csv(input_file=None):
+    # Import tkinter lazily to avoid requiring a GUI in headless environments
     if not input_file:
+        try:
+            from tkinter import Tk
+            from tkinter.filedialog import askopenfilename
+        except Exception as e:
+            print(f"Interactive file selection requires tkinter: {e}")
+            return
+
         # Hide the main Tkinter window
         Tk().withdraw()
         
@@ -71,6 +77,53 @@ def convert_xlsx_to_csv(input_file=None):
     output_path = os.path.join(input_dir, output_file)
     output_df.to_csv(output_path, index=False, quoting=csv.QUOTE_ALL)
     print(f"Output saved to {output_path}")
+    return output_path
+
+def detect_revolut_file(path):
+    try:
+        with open(path, encoding='utf-8-sig', newline='') as f:
+            head = f.read(4096).lower()
+            return 'started date' in head and 'description' in head
+    except Exception:
+        return False
+
+
+def convert_file(input_path, preview=False):
+    """Wrapper to convert a single Revolut file. Returns output filepath or False on error.
+       If preview=True, returns the expected output filename without writing.
+    """
+    if preview:
+        # Try to estimate date range from file by reading Started Date column
+        try:
+            with open(input_path, encoding='utf-8-sig', newline='') as f:
+                # Read header
+                reader = csv.reader(f)
+                hdr = [h.strip().lower() for h in next(reader)]
+                idx = None
+                for i, h in enumerate(hdr):
+                    if 'started date' == h:
+                        idx = i
+                        break
+                if idx is None:
+                    return None
+                dates = []
+                for row in reader:
+                    if idx < len(row) and row[idx].strip():
+                        try:
+                            dates.append(row[idx].split(' ')[0])
+                        except Exception:
+                            continue
+                if not dates:
+                    return None
+                # simple min/max strings (not robust date parsing here)
+                min_date = min(dates).replace('-', '')
+                max_date = max(dates).replace('-', '')
+                return os.path.join(os.path.dirname(input_path) or '.', f"Actual_Revolut_{min_date}_{max_date}_01.csv")
+        except Exception:
+            return None
+
+    return convert_xlsx_to_csv(input_file=input_path)
+
 
 if __name__ == '__main__':
     import argparse

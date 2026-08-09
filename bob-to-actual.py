@@ -93,10 +93,31 @@ def process_csv(in_filename):
             for line in ynab_csv:
                 ynab_writer.writerow([line[0], line[1], line[2], line[3], line[4]])
         print(f'Input: {in_filename} Output: {out_filename}')
-        return True
+        return out_filename
     except Exception as e:
         print(f'Error writing file {in_filename}: {e}')
         return False
+
+def detect_bob_file(path):
+    """Return True if the file looks like a bob CSV export."""
+    try:
+        with open(path, encoding='utf-8-sig', newline='') as f:
+            head = f.read(4096).lower()
+            return ('transaction date' in head and 'reference no' in head) or "'" in head
+    except Exception:
+        return False
+
+
+def convert_file(input_path, preview=False):
+    """Wrapper to convert a single bob CSV file. Returns output filepath or False on error.
+       If preview=True, does not write files and instead returns None after detection.
+    """
+    if not detect_bob_file(input_path):
+        return False
+    if preview:
+        return None
+    return process_csv(input_path)
+
 
 def process_csv_files_select():
     try:
