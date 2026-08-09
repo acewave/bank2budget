@@ -1,2 +1,2 @@
-@python ynab.py -i
+@python bob-to-actual.py -i
 @pause
