@@ -4,15 +4,16 @@ import csv
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
-def convert_xlsx_to_csv():
-    # Hide the main Tkinter window
-    Tk().withdraw()
-    
-    # Ask the user to select the input file
-    input_file = askopenfilename(
-        title="Select the input Excel or CSV file",
-        filetypes=[("CSV files", "*.csv"), ("Excel files", "*.xlsx"), ("All files", "*.*")]
-    )
+def convert_xlsx_to_csv(input_file=None):
+    if not input_file:
+        # Hide the main Tkinter window
+        Tk().withdraw()
+        
+        # Ask the user to select the input file
+        input_file = askopenfilename(
+            title="Select the input Excel or CSV file",
+            filetypes=[("CSV files", "*.csv"), ("Excel files", "*.xlsx"), ("All files", "*.*")]
+        )
     
     if not input_file:
         print("No file selected. Exiting.")
@@ -29,6 +30,10 @@ def convert_xlsx_to_csv():
 
     # Ensure 'Started Date' is in datetime format
     df['Started Date'] = pd.to_datetime(df['Started Date'])
+
+    # Filter by State if present (keep COMPLETED only)
+    if 'State' in df.columns:
+        df = df[df['State'].astype(str).str.upper() == 'COMPLETED']
 
     # Map the columns and remove the timestamp from 'Started Date'
     df['Date'] = df['Started Date'].dt.date
@@ -67,5 +72,10 @@ def convert_xlsx_to_csv():
     output_df.to_csv(output_path, index=False, quoting=csv.QUOTE_ALL)
     print(f"Output saved to {output_path}")
 
-# Run the function
-convert_xlsx_to_csv()
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Convert Revolut CSV/XLSX statement to Actual Budget format.")
+    parser.add_argument('-i', '--input', help="Path to input CSV/XLSX file")
+    args = parser.parse_args()
+
+    convert_xlsx_to_csv(input_file=args.input)

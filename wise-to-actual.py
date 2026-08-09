@@ -84,6 +84,7 @@ def transform_row(row_data):
     """
     
     transaction_id = row_data.get('ID', '')
+    status = row_data.get('Status', '').upper()
     direction = row_data.get('Direction', '').upper()
     created_on = row_data.get('Created on', '')
     source_fee = row_data.get('Source fee amount')
@@ -94,6 +95,11 @@ def transform_row(row_data):
     target_amount = row_data.get('Target amount (after fees)')
     target_currency = row_data.get('Target currency', '').upper()
     reference = row_data.get('Reference', '')
+
+    # Filter out transactions that are not COMPLETED (e.g. CANCELLED, REFUNDED, PROCESSING)
+    if status and status != 'COMPLETED':
+        print(f"Skipping transaction {transaction_id} (Status: {status}): Not COMPLETED.")
+        return None
 
     is_source_base = source_currency == BASE_CURRENCY
     is_target_base = target_currency == BASE_CURRENCY
@@ -138,10 +144,13 @@ def transform_row(row_data):
         
         # If neither matched, it would have been skipped by the global filter above.
 
+    # Format date to YYYY-MM-DD date string (stripping timestamp)
+    date_str = created_on.split(' ')[0].strip() if created_on else ''
+
     # Construct the output row dictionary only if we did not skip
     output_row = {
         'ID': transaction_id,
-        'Date': created_on,
+        'Date': date_str,
         'Payee': payee,
         'Memo': reference,
         # Format the amount to 2 decimal places as a string
@@ -231,7 +240,7 @@ def convert_csv():
                         try:
                             # Try multiple date formats
                             transaction_date = None
-                            date_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d', '%d-%m-%Y']
+                            date_formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d', '%d-%m-%Y']
                             for date_fmt in date_formats:
                                 try:
                                     transaction_date = datetime.strptime(created_on, date_fmt).date()
@@ -377,24 +386,32 @@ def select_base_currency():
 
 
 if __name__ == '__main__':
-    # 1. Prompt user to select input file
-    selected_file = select_input_file()
+    import argparse
+    parser = argparse.ArgumentParser(description="Convert Wise CSV statement to Actual Budget format.")
+    parser.add_argument('-i', '--input', help="Path to input CSV file")
+    parser.add_argument('-b', '--base-currency', default='GBP', help="Base currency code (default: GBP)")
+    args = parser.parse_args()
+
+    if args.input:
+        INPUT_FILENAME = args.input
+        BASE_CURRENCY = args.base_currency.upper()
+        print(f"Running in headless mode. Input: {INPUT_FILENAME}, Base Currency: {BASE_CURRENCY}")
+    else:
+        # 1. Prompt user to select input file via GUI
+        selected_file = select_input_file()
+        
+        if selected_file is None:
+            print("No file selected. Exiting program.")
+            exit()
+        
+        INPUT_FILENAME = selected_file
+        print(f"Input file set to: {INPUT_FILENAME}")
+        
+        # 2. Prompt user to select base currency
+        BASE_CURRENCY = select_base_currency()
+        
+        if BASE_CURRENCY is None:
+            exit()
     
-    if selected_file is None:
-        print("No file selected. Exiting program.")
-        exit()
-    
-    INPUT_FILENAME = selected_file
-    print(f"Input file set to: {INPUT_FILENAME}")
-    
-    # 2. Prompt user to select base currency
-    BASE_CURRENCY = select_base_currency()
-    
-    if BASE_CURRENCY is None:
-        exit()
-    
-    # 3. Generate a sample input file (optional, but helpful for first run)
-    #generate_sample_input()
-    
-    # 4. Run the conversion
+    # Run the conversion
     convert_csv()
