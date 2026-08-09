@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YNAB Bob - CSV Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>YNAB Bob</h1>
+            <p>Butterfield Bank CSV to YNAB Converter</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h2>ℹ️ How It Works</h2>
+                <p>This tool converts Butterfield Bank exported CSV files into YNAB import format.</p>
+                <ul>
+                    <li>Supports both regular and credit card export formats</li>
+                    <li>All processing happens in your browser (your data stays private)</li>
+                    <li>Upload one or multiple CSV files at once</li>
+                </ul>
+            </div>
+
+            <div class="upload-section">
+                <h2>Upload CSV Files</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="csvInput" multiple accept=".csv" />
+                    <label for="csvInput" class="file-label">
+                        <span>📁 Choose CSV Files</span>
+                    </label>
+                </div>
+                <p class="file-hint">Select one or more CSV files from your Butterfield Bank exports</p>
+            </div>
+
+            <div class="status-section">
+                <div id="status" class="status"></div>
+                <div id="results" class="results-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="converter.js"></script>
+</body>
+</html>
