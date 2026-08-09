@@ -179,6 +179,68 @@ def select_input_file():
     root.destroy()
     return file_path
 
+def detect_base_currency_from_file(filename):
+    """Try to infer the account base currency from the input CSV.
+
+    Strategy:
+    - Count occurrences of currencies in Source currency and Target currency columns.
+    - Prefer currencies from "self" (balance) transactions where Source name == Target name and Source currency == Target currency.
+    - Fallback to the most common currency across both Source and Target columns.
+    Returns the currency code (uppercased) or None if detection failed.
+    """
+    try:
+        with open(filename, mode='r', newline='', encoding='utf-8') as infile:
+            reader = csv.reader(infile)
+            try:
+                header = [h.strip().lower() for h in next(reader)]
+            except StopIteration:
+                return None
+
+            # Find indices
+            idx_source_currency = None
+            idx_target_currency = None
+            idx_source_name = None
+            idx_target_name = None
+            for i, h in enumerate(header):
+                lh = h.lower()
+                if 'source currency' == lh:
+                    idx_source_currency = i
+                if 'target currency' == lh:
+                    idx_target_currency = i
+                if 'source name' == lh:
+                    idx_source_name = i
+                if 'target name' == lh:
+                    idx_target_name = i
+
+            from collections import Counter
+            overall = Counter()
+            self_counts = Counter()
+
+            for row in reader:
+                src_cur = row[idx_source_currency].strip().upper() if idx_source_currency is not None and idx_source_currency < len(row) else ''
+                tgt_cur = row[idx_target_currency].strip().upper() if idx_target_currency is not None and idx_target_currency < len(row) else ''
+                src_name = row[idx_source_name].strip() if idx_source_name is not None and idx_source_name < len(row) else ''
+                tgt_name = row[idx_target_name].strip() if idx_target_name is not None and idx_target_name < len(row) else ''
+
+                if src_cur:
+                    overall[src_cur] += 1
+                if tgt_cur:
+                    overall[tgt_cur] += 1
+
+                # detect balance/self transactions
+                if src_cur and tgt_cur and src_cur == tgt_cur and src_name and tgt_name and src_name == tgt_name:
+                    self_counts[src_cur] += 1
+
+            if self_counts:
+                return self_counts.most_common(1)[0][0]
+
+            if overall:
+                return overall.most_common(1)[0][0]
+
+    except Exception:
+        return None
+
+
 def convert_csv():
     """
     Main function to run the conversion process.
@@ -394,8 +456,21 @@ if __name__ == '__main__':
 
     if args.input:
         INPUT_FILENAME = args.input
-        BASE_CURRENCY = args.base_currency.upper()
-        print(f"Running in headless mode. Input: {INPUT_FILENAME}, Base Currency: {BASE_CURRENCY}")
+        if args.base_currency:
+            BASE_CURRENCY = args.base_currency.upper()
+            print(f"Running in headless mode. Input: {INPUT_FILENAME}, Base Currency: {BASE_CURRENCY}")
+        else:
+            # Try to auto-detect base currency from the input file
+            detected = detect_base_currency_from_file(INPUT_FILENAME)
+            if detected:
+                BASE_CURRENCY = detected
+                print(f"Running in headless mode. Input: {INPUT_FILENAME}, auto-detected Base Currency: {BASE_CURRENCY}")
+            else:
+                # Fallback to interactive selection if detection failed
+                print("Could not detect base currency from file. Falling back to interactive prompt.")
+                BASE_CURRENCY = select_base_currency()
+                if BASE_CURRENCY is None:
+                    exit()
     else:
         # 1. Prompt user to select input file via GUI
         selected_file = select_input_file()
@@ -407,11 +482,15 @@ if __name__ == '__main__':
         INPUT_FILENAME = selected_file
         print(f"Input file set to: {INPUT_FILENAME}")
         
-        # 2. Prompt user to select base currency
-        BASE_CURRENCY = select_base_currency()
-        
-        if BASE_CURRENCY is None:
-            exit()
+        # 2. Try to auto-detect base currency; if that fails, prompt the user
+        detected = detect_base_currency_from_file(INPUT_FILENAME)
+        if detected:
+            BASE_CURRENCY = detected
+            print(f"Auto-detected base currency: {BASE_CURRENCY}")
+        else:
+            BASE_CURRENCY = select_base_currency()
+            if BASE_CURRENCY is None:
+                exit()
     
     # Run the conversion
     convert_csv()
