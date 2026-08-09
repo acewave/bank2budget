@@ -239,6 +239,15 @@ class TestWiseConverter(unittest.TestCase):
         self.assertEqual(result[4], '-100.00')
 
 
+    def test_detect_base_currency_from_sample_raw(self):
+        import os
+        repo_root = os.path.dirname(__file__)
+        sample = os.path.join(repo_root, '.scratch', 'wise-sample-raw.csv')
+        detected = wise_module.detect_base_currency_from_file(sample)
+        self.assertIsNotNone(detected)
+        self.assertEqual(detected, 'GBP')
+
+
 class TestBobConverter(unittest.TestCase):
     """Test suite for bob-to-actual conversion logic."""
 
