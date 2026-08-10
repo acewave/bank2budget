@@ -130,19 +130,26 @@ def transform_row(row_data):
         
     elif direction == 'NEUTRAL':
         # Rule: NEUTRAL transactions that involve the base currency
-        
+
         if is_source_base and not is_target_base:
-            # GBP spent to buy foreign currency (e.g. GBP -> EUR/USD wallet) (Expense/Transfer Out)
+            # Base currency spent to buy foreign currency (Expense/Transfer Out)
             payee = source_name
             total_expense = safe_decimal_sum(source_amount, source_fee)
             amount = -total_expense
-            
-        elif is_target_base:
-            # Target is base currency (e.g. USD -> GBP exchange, or GBP -> GBP balance adjustment/cashback) (Income/Transfer In)
+
+        elif is_target_base and not is_source_base:
+            # Foreign currency sold into base currency (Income/Transfer In)
             payee = source_name if source_name != target_name else target_name
             amount = safe_decimal_sum(target_amount, '0')
-        
-        # If neither matched, it would have been skipped by the global filter above.
+
+        elif is_source_base and is_target_base:
+            # Both sides are in the base currency. Treat as an internal balance adjustment
+            # originating from the source account: represent as an expense (negative amount)
+            payee = source_name if source_name else target_name
+            total_expense = safe_decimal_sum(source_amount, source_fee)
+            amount = -total_expense
+
+        # If none of the above matched, the row would have been skipped by the global filter above.
 
     # Format date to YYYY-MM-DD date string (stripping timestamp)
     date_str = created_on.split(' ')[0].strip() if created_on else ''
