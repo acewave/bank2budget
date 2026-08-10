@@ -95,6 +95,7 @@ def transform_row(row_data):
     target_amount = row_data.get('Target amount (after fees)')
     target_currency = row_data.get('Target currency', '').upper()
     reference = row_data.get('Reference', '')
+    memo = reference
 
     # Filter out transactions that are not COMPLETED (e.g. CANCELLED, REFUNDED, PROCESSING)
     if status and status != 'COMPLETED':
@@ -131,6 +132,9 @@ def transform_row(row_data):
     elif direction == 'NEUTRAL':
         # Rule: NEUTRAL transactions that involve the base currency
 
+        # Mark memo so these can be reviewed after import
+        memo = f"[NEUTRAL] {memo}".strip()
+
         if is_source_base and not is_target_base:
             # Base currency spent to buy foreign currency (Expense/Transfer Out)
             payee = source_name
@@ -144,10 +148,9 @@ def transform_row(row_data):
 
         elif is_source_base and is_target_base:
             # Both sides are in the base currency. Treat as an internal balance adjustment
-            # originating from the source account: represent as an expense (negative amount)
+            # represented as a positive credit into the account (use target amount).
             payee = source_name if source_name else target_name
-            total_expense = safe_decimal_sum(source_amount, source_fee)
-            amount = -total_expense
+            amount = safe_decimal_sum(target_amount, '0')
 
         # If none of the above matched, the row would have been skipped by the global filter above.
 
@@ -321,6 +324,7 @@ def convert_csv():
     Generates output filename based on the date range of transactions.
     """
     output_rows = []
+    neutral_rows = []  # collect NEUTRAL transactions for review
     min_date = None
     max_date = None
     
@@ -368,6 +372,36 @@ def convert_csv():
                 transformed = transform_row(row_data)
                 if transformed is not None:
                     output_rows.append(transformed)
+
+                    # If this was a NEUTRAL transaction, record it for review
+                    if row_data.get('Direction', '').upper() == 'NEUTRAL':
+                        src_cur = (row_data.get('Source currency') or '').upper()
+                        tgt_cur = (row_data.get('Target currency') or '').upper()
+                        is_src_base = src_cur == (BASE_CURRENCY or '').upper()
+                        is_tgt_base = tgt_cur == (BASE_CURRENCY or '').upper()
+
+                        if is_src_base and not is_tgt_base:
+                            reason = 'source_base_to_foreign -> expense (negative)'
+                        elif is_tgt_base and not is_src_base:
+                            reason = 'foreign_to_base -> income (positive)'
+                        elif is_src_base and is_tgt_base:
+                            reason = 'both_base -> internal adjustment (treated as positive)'
+                        else:
+                            reason = 'ambiguous (neither currency matches base)'
+
+                        neutral_rows.append({
+                            'ID': row_data.get('ID', ''),
+                            'Created on': row_data.get('Created on', ''),
+                            'Source currency': src_cur,
+                            'Target currency': tgt_cur,
+                            'Source Amount (after fees)': row_data.get('Source Amount (after fees)', ''),
+                            'Target amount (after fees)': row_data.get('Target amount (after fees)', ''),
+                            'Suggested Date': transformed[1],
+                            'Suggested Payee': transformed[2],
+                            'Suggested Memo': transformed[3],
+                            'Suggested Amount': transformed[4],
+                            'Reason': reason
+                        })
                     
                     # Track date range from the "Created on" field in the original row data
                     created_on = row_data.get('Created on', '').strip()
@@ -420,10 +454,32 @@ def convert_csv():
             writer = csv.writer(outfile)
             writer.writerow(OUTPUT_HEADERS)
             writer.writerows(output_rows)
-        
+
         print(f"\nSuccessfully converted {len(output_rows)} transactions.")
         print(f"Output saved to '{output_filename}'")
-        
+
+        # 5. If any NEUTRAL transactions were collected, write a review CSV to help manual inspection
+        if neutral_rows:
+            if min_date and max_date:
+                min_date_str = min_date.strftime('%Y%m%d')
+                max_date_str = max_date.strftime('%Y%m%d')
+                review_name = f"wise-actual-neutral-review-{min_date_str}-{max_date_str}.csv"
+            else:
+                today = datetime.now().strftime('%Y%m%d')
+                review_name = f"wise-actual-neutral-review-{today}.csv"
+
+            review_path = os.path.join(input_directory or '.', review_name)
+            try:
+                with open(review_path, mode='w', newline='', encoding='utf-8') as rv:
+                    review_writer = csv.writer(rv)
+                    review_header = ['ID', 'Created on', 'Source currency', 'Target currency', 'Source Amount (after fees)', 'Target amount (after fees)', 'Suggested Date', 'Suggested Payee', 'Suggested Memo', 'Suggested Amount', 'Reason']
+                    review_writer.writerow(review_header)
+                    for nr in neutral_rows:
+                        review_writer.writerow([nr.get(h, '') for h in review_header])
+                print(f"Neutral transactions review written to '{review_path}' ({len(neutral_rows)} rows).")
+            except Exception as e:
+                print(f"Failed to write neutral transactions review file: {e}")
+
     except Exception as e:
         print(f"An error occurred during writing the output file: {e}")
 

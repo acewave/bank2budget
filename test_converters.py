@@ -176,11 +176,11 @@ class TestWiseConverter(unittest.TestCase):
         }
         result = wise_transform_row(row)
         self.assertIsNotNone(result)
-        # Expect negative sign: represent internal balance adjustment as an expense from source
-        self.assertEqual(result[4], '-3.22')
+        # Expect positive sign: internal balance adjustment represented as credit
+        self.assertEqual(result[4], '3.22')
 
     def test_wise_balance_transaction_538916_sign(self):
-        # BALANCE_TRANSACTION-5389169173 from .scratch: should be negative
+        # BALANCE_TRANSACTION-5389169173 from .scratch: should be positive
         row = {
             'ID': 'BALANCE_TRANSACTION-5389169173',
             'Status': 'COMPLETED',
@@ -202,7 +202,7 @@ class TestWiseConverter(unittest.TestCase):
         # restore previous base to avoid test-order dependencies
         wise_module.BASE_CURRENCY = prev_base
         self.assertIsNotNone(result)
-        self.assertEqual(result[4], '-39.97')
+        self.assertEqual(result[4], '39.97')
 
     def test_wise_neutral_usd_to_gbp_exchange(self):
         row = {
