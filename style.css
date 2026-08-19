@@ -67,9 +67,34 @@ body {
     font-size: 1.3em;
 }
 
+/* New controls layout for the conversion type selector */
+.controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.controls label {
+    font-weight: 700;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+}
+
 .file-input-wrapper {
     position: relative;
     margin-bottom: 15px;
+    margin-top: 8px; /* space between selector and file button */
 }
 
 #csvInput {
@@ -206,5 +231,14 @@ body {
 
     .download-btn {
         margin-top: 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .controls select {
+        width: 100%;
     }
 }
