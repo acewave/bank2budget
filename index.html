@@ -10,15 +10,16 @@
     <div class="container">
         <div class="header">
             <h1>YNAB Bob</h1>
-            <p>Butterfield Bank CSV to YNAB Converter</p>
+            <p>Butterfield Bank CSV to YNAB / Actual Budget Converter</p>
         </div>
 
         <div class="content">
             <div class="info-box">
                 <h2>ℹ️ How It Works</h2>
-                <p>This tool converts Butterfield Bank exported CSV files into YNAB import format.</p>
+                <p>This tool converts bank exported CSV files into YNAB or Actual Budget import format, entirely in your browser.</p>
                 <ul>
-                    <li>Supports both regular and credit card export formats</li>
+                    <li>Supports multiple source formats (Butterfield "bob", Revolut, ...)</li>
+                    <li>Choose conversion type from the dropdown before uploading files</li>
                     <li>All processing happens in your browser (your data stays private)</li>
                     <li>Upload one or multiple CSV files at once</li>
                 </ul>
@@ -26,13 +27,21 @@
 
             <div class="upload-section">
                 <h2>Upload CSV Files</h2>
+                <div class="controls">
+                    <label for="converterType">Conversion type</label>
+                    <select id="converterType">
+                        <option value="bob">Butterfield (YNAB)</option>
+                        <option value="revolut">Revolut (Actual)</option>
+                    </select>
+                </div>
+
                 <div class="file-input-wrapper">
                     <input type="file" id="csvInput" multiple accept=".csv" />
                     <label for="csvInput" class="file-label">
                         <span>📁 Choose CSV Files</span>
                     </label>
                 </div>
-                <p class="file-hint">Select one or more CSV files from your Butterfield Bank exports</p>
+                <p class="file-hint">Select one or more CSV files from your bank exports</p>
             </div>
 
             <div class="status-section">
@@ -42,6 +51,6 @@
         </div>
     </div>
 
-    <script src="converter.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
