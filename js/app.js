@@ -58,6 +58,7 @@ function displayResults(resultsArray) {
     if (!resultsArray || resultsArray.length === 0) {
         statusDiv.textContent = 'No valid CSV files found to convert.';
         statusDiv.className = 'status error';
+        resultsDiv.classList.remove('show');
         return;
     }
 
@@ -86,6 +87,9 @@ function displayResults(resultsArray) {
             downloadResult(idx);
         });
     });
+
+    // Make sure the results container is visible
+    resultsDiv.classList.add('show');
 }
 
 function downloadResult(index) {
