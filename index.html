@@ -5,120 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bank2Budget - CSV Converter</title>
 
-    <!-- Minimal GOV.UK-inspired styles (keeps markup simple and accessible) -->
-    <style>
-        :root{
-            --gov-blue:#1d70b8;
-            --gov-black:#0b0c0c;
-            --page-bg:#f3f2f1;
-            --card-bg:#ffffff;
-            --max-width:680px;
-            --radius:4px;
-        }
-        *{box-sizing:border-box}
-        html,body{height:100%}
-        body{
-            margin:0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background:var(--page-bg);
-            color:var(--gov-black);
-            -webkit-font-smoothing:antialiased;
-            -moz-osx-font-smoothing:grayscale;
-            line-height:1.5;
-            padding:32px 16px;
-        }
-        .wrapper{
-            max-width:var(--max-width);
-            margin:0 auto;
-        }
-        header{
-            margin-bottom:24px;
-        }
-        .brand{
-            color:var(--gov-blue);
-            font-weight:700;
-            font-size:28px;
-            margin:0 0 6px 0;
-        }
-        .tagline{
-            margin:0;
-            color:#505a5f;
-            font-size:15px;
-        }
-
-        main .card{
-            background:var(--card-bg);
-            border:1px solid #dfe3e6;
-            border-radius:var(--radius);
-            padding:24px;
-            box-shadow:none;
-        }
-
-        h2{
-            font-size:18px;
-            margin:0 0 12px 0;
-            color:var(--gov-black);
-        }
-
-        .note{
-            background:transparent;
-            border-left:4px solid var(--gov-blue);
-            padding:12px 16px;
-            margin-bottom:18px;
-            color:#333;
-            border-radius:2px;
-        }
-
-        ul{margin:8px 0 0 20px}
-
-        .form-row{margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-        label{font-weight:600;color:#222;font-size:14px}
-        select{
-            padding:8px 10px;border-radius:4px;border:1px solid #ccd6db;background:#fff;min-width:200px
-        }
-
-        /* file input button */
-        .file-input{display:inline-block}
-        #csvInput{position:absolute;left:-10000px}
-        .gov-file-button{
-            display:inline-block;padding:10px 14px;background:#ffffff;border:1px solid #ccd6db;border-radius:4px;color:var(--gov-black);cursor:pointer;font-weight:600;
-        }
-        .gov-file-button:focus{outline:3px solid rgba(29,112,184,0.15)}
-        .hint{color:#505a5f;font-size:13px;margin-top:6px}
-
-        /* status and results */
-        .status{margin-top:18px;padding:12px;border-radius:4px;border-left:4px solid transparent;background:#f7f7f7;color:#222}
-        .status.processing{border-left-color:var(--gov-blue);background:#f0f7fb}
-        .status.success{border-left-color:#138a36;background:#f0f9f5}
-        .status.error{border-left-color:#b10e1e;background:#fff1f0}
-
-        .results{margin-top:16px}
-        .result-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid #e6eaed;border-radius:4px;background:#fff;margin-bottom:8px}
-        .download-btn{background:var(--gov-blue);color:#fff;padding:8px 12px;border-radius:4px;border:none;cursor:pointer;font-weight:700}
-        .download-btn:focus{outline:3px solid rgba(29,112,184,0.15)}
-
-        /* responsive */
-        @media (max-width:480px){
-            .brand{font-size:22px}
-            .form-row{flex-direction:column;align-items:stretch}
-            .result-item{flex-direction:column;align-items:flex-start}
-            .download-btn{width:100%;margin-top:8px}
-        }
-    </style>
+    <!-- External minimalist GOV.UK-inspired styles -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="wrapper">
         <header>
-            <h1 class="brand">Bank2Budget</h1>
-            <p class="tagline">Convert your bank CSV or QIF exports into Actual Budget import format — locally in your browser.</p>
+            <div>
+                <h1 class="brand">Bank2Budget</h1>
+                <p class="tagline">Convert your bank CSV or QIF exports into Actual Budget import format — locally in your browser.</p>
+            </div>
+
+            <div class="theme-toggle" aria-hidden="false">
+                <label id="themeToggleLabel" for="themeToggle" class="sr-only">Toggle dark mode</label>
+                <button id="themeToggle" type="button" aria-pressed="false" title="Toggle light / dark mode">
+                    <!-- simple text + emoji for clarity and accessibility -->
+                    <span id="themeToggleIcon">🌙</span>
+                    <span id="themeToggleText">Dark mode</span>
+                </button>
+            </div>
         </header>
 
         <main>
             <section class="card" aria-labelledby="how-it-works">
                 <h2 id="how-it-works">How it works</h2>
-                <div class="note">
+
+                <div class="note" role="note" aria-label="Privacy information">
                     <p style="margin:0 0 8px 0;font-weight:600;">Privacy-first</p>
-                    <p style="margin:0;color:#444">All processing happens in your browser — files are not uploaded to any server.</p>
+                    <p style="margin:0;color:inherit">All processing happens in your browser — files are not uploaded to any server.</p>
                 </div>
 
                 <div class="note" style="border-left-color:#7f8c8d;margin-bottom:18px">
@@ -149,19 +63,74 @@
                             <p id="upload-help" class="hint">Select one or more files from your bank exports. Processing happens locally.</p>
                         </div>
                     </div>
-
-                    <div class="form-row" style="margin-top:6px">
-                        <!-- placeholder for any additional controls -->
-                    </div>
                 </form>
 
                 <div id="status" class="status" role="status" aria-live="polite" hidden></div>
                 <div id="results" class="results" aria-live="polite"></div>
             </section>
         </main>
-
     </div>
 
+    <script>
+    (function () {
+        const root = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeToggleIcon');
+        const text = document.getElementById('themeToggleText');
+
+        // Determine initial theme: saved preference -> system preference -> light
+        function getInitialTheme() {
+            try {
+                const saved = localStorage.getItem('bank2budget:theme');
+                if (saved === 'dark' || saved === 'light') return saved;
+            } catch (e) { /* ignore storage errors */ }
+
+            const m = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            return m ? 'dark' : 'light';
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                root.setAttribute('data-theme', 'dark');
+                btn.setAttribute('aria-pressed', 'true');
+                icon.textContent = '☀️';
+                text.textContent = 'Light mode';
+            } else {
+                root.removeAttribute('data-theme');
+                btn.setAttribute('aria-pressed', 'false');
+                icon.textContent = '🌙';
+                text.textContent = 'Dark mode';
+            }
+        }
+
+        function saveTheme(theme) {
+            try { localStorage.setItem('bank2budget:theme', theme); } catch (e) {}
+        }
+
+        // init
+        const initial = getInitialTheme();
+        applyTheme(initial);
+
+        btn.addEventListener('click', () => {
+            const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            saveTheme(next);
+        });
+
+        // keep UI in sync if system preference changes (optional)
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', e => {
+                const saved = localStorage.getItem('bank2budget:theme');
+                if (!saved) { // only follow system if user hasn't chosen explicitly
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+    })();
+    </script>
+
+    <!-- existing app script retained -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
