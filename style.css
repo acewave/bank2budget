@@ -1,4 +1,4 @@
-/* Extracted GOV.UK-inspired styles with dark mode support */
+/* Extracted GOV.UK-inspired styles with dark mode and nostalgia (terminal) support */
 :root{
     --gov-blue:#1d70b8;
     --gov-black:#0b0c0c;
@@ -9,6 +9,8 @@
     --input-bg:#ffffff;
     --max-width:680px;
     --radius:4px;
+    --brand-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --ui-font: var(--brand-font);
 }
 
 /* Dark theme overrides */
@@ -22,17 +24,31 @@
     --input-bg:#0b0f10;
 }
 
+/* Nostalgia (old terminal) theme - green monochrome terminal look */
+[data-theme="nostalgia"]{
+    --page-bg:#021202; /* very dark green */
+    --card-bg:rgba(0,18,0,0.95);
+    --gov-blue:#33ff33; /* bright green for accents */
+    --gov-black:#b7ffb7; /* pale green for main text */
+    --muted:#9ee29e;
+    --border:rgba(51,255,51,0.08);
+    --input-bg:rgba(0,12,0,0.9);
+    --brand-font: 'Courier New', Courier, monospace;
+    --ui-font: 'Courier New', Courier, monospace;
+}
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
     margin:0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family:var(--ui-font);
     background:var(--page-bg);
     color:var(--gov-black);
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
     line-height:1.5;
     padding:32px 16px;
+    transition:background-color 180ms ease, color 180ms ease;
 }
 
 .wrapper{
@@ -80,7 +96,7 @@ h2{
     border-left:4px solid var(--gov-blue);
     padding:12px 16px;
     margin-bottom:18px;
-    color:#333;
+    color:inherit;
     border-radius:2px;
 }
 
@@ -112,16 +128,53 @@ select{
 .download-btn{background:var(--gov-blue);color:#fff;padding:8px 12px;border-radius:4px;border:none;cursor:pointer;font-weight:700}
 .download-btn:focus{outline:3px solid rgba(29,112,184,0.15)}
 
-/* theme toggle */
-.theme-toggle{
+/* theme selector */
+.theme-select{
     display:inline-flex;
     align-items:center;
     gap:8px;
 }
-.theme-toggle button{
-    background:transparent;border:1px solid var(--border);padding:6px 8px;border-radius:4px;color:var(--gov-black);cursor:pointer;font-weight:600
+.theme-select select{padding:8px;border-radius:4px;border:1px solid var(--border);background:var(--input-bg);color:var(--gov-black)}
+
+/* Nostalgia-specific embellishments */
+[data-theme="nostalgia"] body, [data-theme="nostalgia"] .wrapper { }
+[data-theme="nostalgia"] body{
+    /* scanline effect + subtle vignette */
+    background-image: repeating-linear-gradient(transparent 0 2px, rgba(0,0,0,0.03) 2px 4px);
 }
-.theme-toggle button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px rgba(29,112,184,0.12)}
+[data-theme="nostalgia"] .brand{
+    color:var(--gov-blue);
+    font-family:var(--brand-font);
+    text-shadow:0 1px 0 rgba(0,0,0,0.6);
+}
+[data-theme="nostalgia"] .card{
+    background:linear-gradient(180deg, rgba(0,12,0,0.98), rgba(0,6,0,0.95));
+    border:1px solid rgba(51,255,51,0.15);
+    color:var(--gov-black);
+}
+[data-theme="nostalgia"] h2, [data-theme="nostalgia"] .tagline, [data-theme="nostalgia"] .hint, [data-theme="nostalgia"] label, [data-theme="nostalgia"] select, [data-theme="nostalgia"] .gov-file-button {
+    color:var(--gov-black);
+}
+[data-theme="nostalgia"] select, [data-theme="nostalgia"] .gov-file-button{ background: rgba(0,8,0,0.85); border:1px solid rgba(51,255,51,0.06); }
+
+/* faux CRT glow for download button */
+[data-theme="nostalgia"] .download-btn{ background:transparent;color:var(--gov-blue);border:1px solid rgba(51,255,51,0.12); box-shadow:0 0 8px rgba(51,255,51,0.06) inset }
+
+/* blinking caret after brand to mimic terminal prompt */
+[data-theme="nostalgia"] .brand{position:relative}
+[data-theme="nostalgia"] .brand::after{
+    content:'_';
+    margin-left:8px;
+    color:var(--gov-blue);
+    opacity:0.95;
+    animation:blink 1s steps(2,end) infinite;
+    font-family:var(--brand-font);
+}
+
+@keyframes blink{50%{opacity:0}}
+
+/* accessibility helper */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* responsive */
 @media (max-width:480px){
