@@ -48,12 +48,12 @@ export async function processFile(fileText, originalFileName) {
 
     const converted = convertBobQif(fileText);
 
-    // Build output filename: prefix with Actual_ and ensure .qif extension
+    // Build output filename: prefix with bob_budget_ and ensure .qif extension
     let base = (originalFileName || 'converted.qif').replace(/^.*[\\/]/, '');
     if (!/\.qif$/i.test(base)) {
         base = base.replace(/\.[^/.]+$/, '') + '.qif';
     }
-    const filename = `Actual_${base}`;
+    const filename = `budget_bob_${base}`;
 
     return { filename, content: converted, originalFileName };
 }

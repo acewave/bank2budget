@@ -61,10 +61,10 @@ export async function processFile(csvText, originalFileName) {
         if (lineCount === 0) {
             if (row[0] === 'Card No') {
                 isCC = true;
-                filenameSuffix = 'YNAB_CC_' + (row[1] || '').slice(-4);
+                filenameSuffix = 'budget_bob_cc_' + (row[1] || '').slice(-4);
             } else {
                 const accountNumber = row[0].replace(/'/g, '0');
-                filenameSuffix = 'YNAB_' + accountNumber;
+                filenameSuffix = 'budget_bob_' + accountNumber;
             }
         }
 

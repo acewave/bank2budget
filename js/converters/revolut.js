@@ -122,7 +122,7 @@ export async function processFile(csvText, originalFileName) {
 
     const fileMin = formatDateForFilename(minDate);
     const fileMax = formatDateForFilename(maxDate);
-    const outputFilename = `Actual_Revolut_${fileMin}_${fileMax}.csv`;
+    const outputFilename = `budget_revolut_${fileMin}_${fileMax}.csv`;
 
     const csvLines = outRows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
 
