@@ -12,15 +12,15 @@
         <header>
             <div>
                 <h1 class="brand">Bank2Budget</h1>
-                <p class="tagline">Convert your bank CSV or QIF exports into Actual Budget import format — locally in your browser.</p>
+                <p class="tagline">Convert your bank CSV or QIF exports into Actual Budget / YNAB import format — locally in your browser.</p>
             </div>
 
             <div class="theme-select" aria-hidden="false">
                 <label for="themeSelect" class="sr-only">Select theme</label>
                 <select id="themeSelect" aria-label="Theme selector">
-                    <option value="light">Light mode</option>
-                    <option value="dark">Dark mode</option>
-                    <option value="nostalgia">Nostalgia (terminal)</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="nostalgia">Terminal</option>
                 </select>
             </div>
         </header>
@@ -39,7 +39,7 @@
                     <ul>
                         <li>Choose the conversion type</li>
                         <li>Select one or more bank export files (CSV or QIF)</li>
-                        <li>Download the converted Actual Budget CSV files</li>
+                        <li>Download the converted budget files</li>
                     </ul>
                 </div>
 
@@ -47,9 +47,9 @@
                     <div class="form-row">
                         <label for="converterType">Conversion type</label>
                         <select id="converterType" name="converterType">
-                            <option value="bob">BOB to Actual (CSV)</option>
-                            <option value="bob-qif">BOB to Actual (QIF)</option>
-                            <option value="revolut">Revolut to Actual (CSV)</option>
+                            <option value="bob">BOB (CSV)</option>
+                            <option value="bob-qif">BOB (QIF)</option>
+                            <option value="revolut">Revolut (CSV)</option>
                         </select>
                     </div>
 
